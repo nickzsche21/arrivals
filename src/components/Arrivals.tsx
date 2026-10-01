@@ -28,6 +28,9 @@ function until(ms: number): string {
 }
 
 function Clock({ now }: { now: number }) {
+  // The page is prerendered at build time, so a server-side clock would show
+  // the build's time and mismatch on hydration. It appears once mounted.
+  if (!now) return <span className="mono text-[13px] text-dim">--:--</span>;
   const d = new Date(now);
   return (
     <span className="mono text-[13px] text-ink">
@@ -49,9 +52,10 @@ export default function Arrivals() {
   const [picked, setPicked] = useState<number | null>(null);
   const [sound, setSound] = useState(false);
   const [startedAt, setStartedAt] = useState(0);
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(0);
 
   useEffect(() => {
+    setNow(Date.now());
     fetch("/stars.json").then((r) => r.json() as Promise<Catalogue>).then((c) => setStars(unpack(c))).catch(() => setFailed(true));
     const t = setInterval(() => setNow(Date.now()), 20_000);
     return () => clearInterval(t);
